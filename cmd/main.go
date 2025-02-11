@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Todo_go/internal/storage/sqlitebase"
+	"Todo_go/internal/handler"
 	"fmt"
 	"net/http"
 
@@ -9,12 +9,23 @@ import (
 )
 
 func main() {
-	sqlitebase.CheckingBase()
-	fmt.Println("Запуск сервера")
-	http.Handle("/", http.FileServer(http.Dir("../web")))
-	err := http.ListenAndServe(":7540", nil)
+
+	router, err := handler.NewRouter()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Ошибка роутера: %s\n", err.Error())
+		return
 	}
+
+	// http.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь нужно откорректировать ../web
+
+	fmt.Println("Запуск сервера")
+
+	err = http.ListenAndServe(":7540", router.Routers())
+	if err != nil {
+		fmt.Printf("Ошибка при запуске сервера: %s\n", err.Error())
+		return
+	}
+
+	router.DB.Close()
 
 }

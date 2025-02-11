@@ -1,4 +1,4 @@
-package repeatrule
+package utils
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 
 	//Проверка на пустую строку в колонке repeat
 	if repeat == "" {
-		return "", errors.New("Не определено правило повторения")
+		return "", errors.New("не определено правило повторения")
 	}
 
 	//Парсинг исходного времени, от которго начинается отсчет повторений
@@ -22,24 +22,26 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	}
 	switch {
 	case repeat == "y":
-		nextDate := parseDate.Add(1, 0, 0)
-		if nextDate.Before(now) {
-			return "", errors.New("Несоотвтествие следующей даты относительо текущей")
+		nextDate := parseDate.AddDate(1, 0, 0)
+		for nextDate.Before(now) {
+			//return "", errors.New("Несоотвтествие следующей даты относительно текущей")
+			nextDate = nextDate.AddDate(1, 0, 0)
 		}
 		return nextDate.Format("20060102"), nil
 	case len(repeat) > 2 && string(repeat[0]) == "d":
 		strdays, _ := strings.CutPrefix(repeat, "d ")
 		days, err := strconv.Atoi(strdays)
-		if err != nil && days > 400 {
-			return "", errors.New("Неправильное правило  повторения")
+		if err != nil || days > 400 {
+			return "", errors.New("неправильное правило  повторения")
 		}
-		nextDate := parseDate.Add(0, 0, days)
-		if nextDate.Before(now) {
-			return "", errors.New("Несоотвтествие следующей даты относительо текущей")
+		nextDate := parseDate.AddDate(0, 0, days)
+		for nextDate.Before(now) {
+			//return "", errors.New("Несоотвтествие следующей даты относительно текущей")
+			nextDate = nextDate.AddDate(0, 0, days)
 		}
 		return nextDate.Format("20060102"), nil
 	default:
-		return "", errors.New("Неподдерживаемое правило повторений")
+		return "", errors.New("неподдерживаемое правило повторений")
 	}
 
 }
