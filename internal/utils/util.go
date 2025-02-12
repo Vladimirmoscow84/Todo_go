@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -16,9 +17,10 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	}
 
 	//Парсинг исходного времени, от которго начинается отсчет повторений
+
 	parseDate, err := time.Parse("20060102", date)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("некорректный формат времени: %s", err.Error())
 	}
 	switch {
 	case repeat == "y":
@@ -32,7 +34,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		strdays, _ := strings.CutPrefix(repeat, "d ")
 		days, err := strconv.Atoi(strdays)
 		if err != nil || days <= 0 || days > 400 {
-			return "", errors.New("неправильное правило  повторения")
+			return "", errors.New("неправильное правило повторения")
 		}
 		nextDate := parseDate.AddDate(0, 0, days)
 		for nextDate.Before(now) {
