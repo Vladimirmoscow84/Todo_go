@@ -31,7 +31,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	case len(repeat) > 2 && string(repeat[0]) == "d":
 		strdays, _ := strings.CutPrefix(repeat, "d ")
 		days, err := strconv.Atoi(strdays)
-		if err != nil || days > 400 {
+		if err != nil || days <= 0 || days > 400 {
 			return "", errors.New("неправильное правило  повторения")
 		}
 		nextDate := parseDate.AddDate(0, 0, days)
