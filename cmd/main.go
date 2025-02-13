@@ -26,7 +26,6 @@ func main() {
 		fmt.Printf("Ошибка при запуске сервера: %s\n", err.Error())
 		return
 	}
-
 	router.DB.Close()
 	time.Sleep(time.Second * 3)
 
