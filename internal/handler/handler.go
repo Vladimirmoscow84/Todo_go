@@ -51,8 +51,8 @@ func (rt *Router) Routers() *chi.Mux {
 	router.Get("/", http.HandlerFunc(http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web")).ServeHTTP)) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
-	//chi.Delete("/api/task", .....)
-	//chi.Get("/api/task", ....)
+	//router.Delete("/api/task", .....)
+	//router.Get("/api/task", ....)
 	return router
 }
 
@@ -148,7 +148,9 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if parseDate.Before(time.Now()) {
+		if task.Date == time.Now().Format("20060102") {
+			task.Date = time.Now().Format("20060102")
+		} else if parseDate.Before(time.Now()) {
 			switch {
 			case task.Repeat == "":
 				task.Date = time.Now().Format("20060102")
@@ -202,6 +204,7 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resptask.ID = strconv.Itoa(int(id))
+	fmt.Printf("id: %s\n", resptask.ID)
 
 	resp, err := json.Marshal(resptask)
 	if err != nil {

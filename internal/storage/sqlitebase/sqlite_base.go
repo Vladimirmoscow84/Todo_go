@@ -16,6 +16,8 @@ func CheckingBase() (*sql.DB, error) {
 		return nil, fmt.Errorf("ошибка executable: %s", err.Error())
 	}
 	dbFile := filepath.Join(filepath.Dir(appPath), "scheduler.db")
+	fmt.Println(appPath)
+	fmt.Println(dbFile)
 	_, err = os.Stat(dbFile)
 	var install bool
 	if err != nil {
@@ -23,7 +25,7 @@ func CheckingBase() (*sql.DB, error) {
 	}
 	var db *sql.DB
 	if install {
-		db, err = sql.Open("sqlite3", appPath+"scheduler.db")
+		db, err = sql.Open("sqlite3", dbFile)
 		if err != nil {
 			return nil, fmt.Errorf("ошибка открытия БД: %s", err.Error())
 		}
@@ -41,6 +43,12 @@ func CheckingBase() (*sql.DB, error) {
 		}
 
 		fmt.Println("Созданы таблицы и индексы")
+	} else {
+		db, err = sql.Open("sqlite3", dbFile)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка открытия БД: %s", err.Error())
+		}
+		fmt.Println("Подключено к БД")
 	}
 	return db, nil
 }
