@@ -27,10 +27,6 @@ func main() {
 		return
 	}
 
-	// _, err = router.DB.Exec("DROP TABLE scheduler")
-	// if err != nil {
-	// 	fmt.Printf("ошибка удаления таблицы scheduler: %s\n", err.Error())
-	// }
 	router.DB.Close()
 	time.Sleep(time.Second * 3)
 
