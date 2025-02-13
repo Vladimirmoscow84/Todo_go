@@ -48,7 +48,7 @@ func NewRouter() (*Router, error) {
 func (rt *Router) Routers() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Get("/", http.HandlerFunc(http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web")).ServeHTTP)) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
+	router.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	//router.Delete("/api/task", .....)
