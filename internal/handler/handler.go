@@ -5,6 +5,7 @@ import (
 	"Todo_go/internal/utils"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -56,6 +57,23 @@ func (rt *Router) Routers() *chi.Mux {
 	return router
 }
 
+// sendError - сериализация и отправка ошибки в формате JSON
+func sendError(w http.ResponseWriter, errText string, err error) {
+	var resptaskErr respTask
+	resptaskErr.Error = errText
+	fmt.Printf("%s: %s\n", errText, err.Error())
+
+	resp, err := json.Marshal(resptaskErr)
+	if err != nil {
+		fmt.Printf("ошибка сериализации ошибки: %s\n", err.Error())
+		http.Error(w, fmt.Sprintf("%s: %s", errText, err.Error()), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(resp)
+}
+
 // NextDateHandler_Get - ручка для возврата даты следующего выполнения задачи
 func (rt *Router) NextDateHandler_Get(w http.ResponseWriter, r *http.Request) {
 
@@ -97,33 +115,13 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 	//десериализация тела запроса в структуру
 	err = json.Unmarshal(b, &task)
 	if err != nil {
-		//отправить ошибку в json
-		resptask.Error = "ошибка десериализации JSON"
-
-		resp, err := json.Marshal(resptask)
-		if err != nil {
-			fmt.Printf("ошибка сериализации ошибки: %s\n", err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Printf("ошибка десериализации: %s\n", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(resp)
+		sendError(w, "ошибка десериализации JSON", err)
 		return
 	}
 	fmt.Printf("Структура: %v\n", task)
 
 	if task.Title == "" {
-		resptask.Error = "Не указан заголовок задачи"
-
-		resp, err := json.Marshal(resptask)
-		if err != nil {
-			fmt.Printf("ошибка сериализации ошибки: %s\n", err.Error())
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(resp)
+		sendError(w, "не указан заголовок задачи", errors.New("не указан заголовок задачи"))
 		return
 	}
 
@@ -135,17 +133,7 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 	} else {
 		parseDate, err = time.Parse("20060102", task.Date)
 		if err != nil {
-			//отправить ошибку в JSON
-			resptask.Error = "ошибка формата времени"
-
-			resp, err := json.Marshal(resptask)
-			if err != nil {
-				fmt.Printf("ошибка сериализации ошибки: %s\n", err.Error())
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(resp)
+			sendError(w, "ошибка формата времени", err)
 			return
 		}
 
@@ -158,17 +146,7 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 			default:
 				nextDate, err = utils.NextDate(time.Now(), task.Date, task.Repeat)
 				if err != nil {
-					//отправить ошибку в JSON
-					resptask.Error = err.Error()
-
-					resp, err := json.Marshal(resptask)
-					if err != nil {
-						fmt.Printf("ошибка сериализации ошибки: %s\n", err.Error())
-						http.Error(w, err.Error(), http.StatusInternalServerError)
-						return
-					}
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write(resp)
+					sendError(w, "ошибка вычисления следующей даты", err)
 					return
 				}
 				task.Date = nextDate
@@ -248,7 +226,7 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	//вызов функции НЕКСТ() для парсинга Эмножества строк из БД построчно
+	//вызов функции НЕКСТ() для парсинга множества строк из БД построчно
 	for rows.Next() {
 		tempTask := Task{}
 
