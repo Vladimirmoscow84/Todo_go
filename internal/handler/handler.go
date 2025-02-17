@@ -23,10 +23,10 @@ type Router struct {
 
 type Task struct {
 	ID      string `json:"id,omitempty"`
-	Date    string `json:"date"`
-	Title   string `json:"title"`
-	Comment string `json:"comment"`
-	Repeat  string `json:"repeat"`
+	Date    string `json:"date,omitempty"`
+	Title   string `json:"title,omitempty"`
+	Comment string `json:"comment,omitempty"`
+	Repeat  string `json:"repeat,omitempty"`
 }
 
 // структура для вывода ответа при добавлении новой задачи
@@ -54,6 +54,7 @@ func (rt *Router) Routers() *chi.Mux {
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	router.Get("/api/tasks", rt.NextTaskHandler_Get)
 	router.Get("/api/task", rt.TaskIDhandler_Get)
+	router.Put("/api/task", rt.ChangeTaskHandler_Put)
 
 	router.Handle("/*", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	// router.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
@@ -188,13 +189,13 @@ func (rt *Router) AddTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 	resptask.ID = strconv.Itoa(int(id))
 	fmt.Printf("id: %s\n", resptask.ID)
 
-	resp, err := json.Marshal(resptask)
+	resp, err := json.MarshalIndent(resptask, "", " ")
 	if err != nil {
 		fmt.Printf("ошибка сериализации номера записи: %s\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	//fmt.Println(string(resp))
 	w.Write(resp)
 }
 
@@ -278,10 +279,10 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 // TaskIDhandler_Get  - ручка для получения задач по id
 func (rt *Router) TaskIDhandler_Get(w http.ResponseWriter, r *http.Request) {
 
-	idStr := r.FormValue("id")
+	idStr := r.FormValue("id") //значение параметра id  в строке запроса api/task?id=<...>
 	idInt, err := strconv.Atoi(idStr)
 	if err != nil {
-		sendError(w, "Не указан идентификатор", err)
+		sendError(w, "Задача не найдена", err)
 		return
 	}
 
@@ -306,4 +307,107 @@ func (rt *Router) TaskIDhandler_Get(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Write(resp)
+}
+
+// ChangeTaskHandler_Put - ручка для изменения значений задачь
+func (rt *Router) ChangeTaskHandler_Put(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	task := Task{}
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	//десериализация тела запроса в структуру
+	err = json.Unmarshal(b, &task)
+	if err != nil {
+		sendError(w, "ошибка десериализации JSON", err)
+		return
+	}
+
+	// конверитирование значения строчного поля id структуры task в цифровое, чтобы оперировать в БД
+	idInt, err := strconv.Atoi(task.ID)
+	if err != nil {
+		sendError(w, "ошибка в конвертированиии поля ID", err)
+		return
+	}
+
+	if task.Title == "" {
+		sendError(w, "не указан заголовок задачи", errors.New("не указан заголовок задачи"))
+		return
+	}
+
+	var parseDate time.Time
+	var nextDate string
+
+	if task.Date == "" {
+		task.Date = time.Now().Format("20060102")
+	} else {
+		parseDate, err = time.Parse("20060102", task.Date)
+		if err != nil {
+			sendError(w, "ошибка формата времени", err)
+			return
+		}
+
+		if task.Date == time.Now().Format("20060102") {
+			task.Date = time.Now().Format("20060102")
+		} else if parseDate.Before(time.Now()) {
+			switch {
+			case task.Repeat == "":
+				task.Date = time.Now().Format("20060102")
+			default:
+				nextDate, err = utils.NextDate(time.Now(), task.Date, task.Repeat)
+				if err != nil {
+					sendError(w, "ошибка вычисления следующей даты", err)
+					return
+				}
+				task.Date = nextDate
+			}
+		}
+
+	}
+	fmt.Println("Запись в БД...")
+
+	// ro := rt.DB.QueryRow(`
+	// 	SELECT title FROM scheduler
+	// 	WHERE id = :id
+	// `, sql.Named("id", idInt))
+	// var f string
+	// ro.Scan(&f)
+	// if f == "" {
+	// 	sendError(w, "ошибка: id отсутствует в базе", err)
+	// 	return
+	// }
+
+	// обновление записи  в БД
+	_, err = rt.DB.Exec(`
+		UPDATE scheduler
+		SET date = :date,
+			title = :title,
+			comment = :comment,
+			repeat = :repeat
+			WHERE id = :id`,
+		sql.Named("date", task.Date),
+		sql.Named("title", task.Title),
+		sql.Named("comment", task.Comment),
+		sql.Named("repeat", task.Repeat),
+		sql.Named("id", idInt),
+	)
+	if err != nil {
+		sendError(w, "ошибка добавления в БД: %s\n", err)
+		return
+	}
+	fmt.Println("Запись в БД выполнена успешно")
+	var emptytask Task
+
+	resp, err := json.Marshal(emptytask)
+	if err != nil {
+		fmt.Printf("ошибка сериализации ответа: %s\n", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(resp)
+
 }
