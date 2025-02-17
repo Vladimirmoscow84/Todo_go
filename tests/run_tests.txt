@@ -1,3 +1,5 @@
 go test -run ^TestAddTask$ ./tests
 
 go test -run ^TestTasks$ ./tests
+
+go test -run ^TestTask$ ./tests

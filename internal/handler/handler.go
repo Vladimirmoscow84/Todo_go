@@ -22,6 +22,7 @@ type Router struct {
 }
 
 type Task struct {
+	ID      string `json:"id"`
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
@@ -50,10 +51,11 @@ func (rt *Router) Routers() *chi.Mux {
 	router := chi.NewRouter()
 
 	// router.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
+	router.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	router.Get("/api/tasks", rt.NextTaskHandler_Get)
-	//router.Get("/api/task", ....)
+	router.Get("/api/task", rt.TaskIDhandler_Get)
 	return router
 }
 
@@ -269,5 +271,38 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Write(resp)
+}
+
+// TaskIDhandler_Get  - ручка для получения задач по id
+func (rt *Router) TaskIDhandler_Get(w http.ResponseWriter, r *http.Request) {
+
+	idStr := r.FormValue("id")
+	idInt, err := strconv.Atoi(idStr)
+	if err != nil {
+		sendError(w, "Не указан идентификатор", err)
+		return
+	}
+
+	task := Task{}
+
+	//обращение к БД
+	row := rt.DB.QueryRow(`
+		SELECT id, date, title, comment, repeat FROM scheduler 
+		WHERE id == :idInt
+		`, sql.Named("idInt", idInt),
+	)
+	err = row.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
+	if err != nil {
+		sendError(w, "ошибка БД", err)
+		return
+	}
+	resp, err := json.MarshalIndent(task, "", " ")
+	if err != nil {
+		fmt.Printf("ошибка сериализации ответа: %s\n", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Write(resp)
 }
