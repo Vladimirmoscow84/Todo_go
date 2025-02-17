@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -49,15 +51,17 @@ func NewRouter() (*Router, error) {
 
 func (rt *Router) Routers() *chi.Mux {
 	router := chi.NewRouter()
-
+	root, _ := os.Getwd()
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	router.Get("/api/tasks", rt.NextTaskHandler_Get)
 	router.Get("/api/task", rt.TaskIDhandler_Get)
 	router.Put("/api/task", rt.ChangeTaskHandler_Put)
 
-	router.Handle("/*", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
-	// router.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
+	router.Handle("/*", http.FileServer(http.Dir(filepath.Join(root, "web"))))
+
+	//router.Handle("/*", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
+	// на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	return router
 }
 
@@ -208,7 +212,7 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 	now := time.Now().Format("20060102")
 	//обращение к БД
 	rows, err := rt.DB.Query(`
-		SELECT date, title, comment, repeat 
+		SELECT id, date, title, comment, repeat 
 		FROM scheduler 
 		WHERE date >= :now
 		ORDER BY date
@@ -234,7 +238,7 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		tempTask := Task{}
 
-		err := rows.Scan(&tempTask.Date, &tempTask.Title, &tempTask.Comment, &tempTask.Repeat)
+		err := rows.Scan(&tempTask.ID, &tempTask.Date, &tempTask.Title, &tempTask.Comment, &tempTask.Repeat)
 		if err != nil {
 			resptask.Error = err.Error()
 
@@ -311,7 +315,7 @@ func (rt *Router) TaskIDhandler_Get(w http.ResponseWriter, r *http.Request) {
 	w.Write(resp)
 }
 
-// ChangeTaskHandler_Put - ручка для изменения значений задачь
+// ChangeTaskHandler_Put - ручка для изменения значений задач
 func (rt *Router) ChangeTaskHandler_Put(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	task := Task{}
