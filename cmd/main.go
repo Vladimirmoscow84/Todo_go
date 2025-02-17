@@ -17,7 +17,10 @@ func main() {
 		return
 	}
 
-	// http.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь нужно откорректировать ../web
+	// для windows
+	http.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web")))
+	// для mac
+	// http.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь нужно откорректировать ../web
 
 	fmt.Println("Запуск сервера")
 
