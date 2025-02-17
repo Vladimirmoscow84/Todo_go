@@ -22,7 +22,7 @@ type Router struct {
 }
 
 type Task struct {
-	ID      string `json:"id"`
+	ID      string `json:"id,omitempty"`
 	Date    string `json:"date"`
 	Title   string `json:"title"`
 	Comment string `json:"comment"`
@@ -50,12 +50,13 @@ func NewRouter() (*Router, error) {
 func (rt *Router) Routers() *chi.Mux {
 	router := chi.NewRouter()
 
-	// router.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
-	router.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	router.Get("/api/tasks", rt.NextTaskHandler_Get)
 	router.Get("/api/task", rt.TaskIDhandler_Get)
+
+	router.Handle("/*", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
+	// router.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	return router
 }
 
