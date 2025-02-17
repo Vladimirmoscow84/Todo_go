@@ -279,7 +279,9 @@ func (rt *Router) NextTaskHandler_Get(w http.ResponseWriter, r *http.Request) {
 // TaskIDhandler_Get  - ручка для получения задач по id
 func (rt *Router) TaskIDhandler_Get(w http.ResponseWriter, r *http.Request) {
 
-	idStr := r.FormValue("id") //значение параметра id  в строке запроса api/task?id=<...>
+	// idStr := r.FormValue("id") //значение параметра id  в строке запроса api/task?id=<...>
+	qp := r.URL.Query()
+	idStr := qp.Get("id")
 	idInt, err := strconv.Atoi(idStr)
 	if err != nil {
 		sendError(w, "Задача не найдена", err)
