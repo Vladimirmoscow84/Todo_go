@@ -335,7 +335,7 @@ func (rt *Router) ChangeTaskHandler_Put(w http.ResponseWriter, r *http.Request) 
 		sendError(w, "ошибка в конвертированиии поля ID", err)
 		return
 	}
-
+	fmt.Printf("idInt: %d\n", idInt)
 	if task.Title == "" {
 		sendError(w, "не указан заголовок задачи", errors.New("не указан заголовок задачи"))
 		return
@@ -372,16 +372,18 @@ func (rt *Router) ChangeTaskHandler_Put(w http.ResponseWriter, r *http.Request) 
 	}
 	fmt.Println("Запись в БД...")
 
-	// ro := rt.DB.QueryRow(`
-	// 	SELECT title FROM scheduler
-	// 	WHERE id = :id
-	// `, sql.Named("id", idInt))
-	// var f string
-	// ro.Scan(&f)
-	// if f == "" {
-	// 	sendError(w, "ошибка: id отсутствует в базе", err)
-	// 	return
-	// }
+	// проверка наличия id в БД
+	ro := rt.DB.QueryRow(`
+		SELECT id FROM scheduler
+		WHERE id = :id
+	`, sql.Named("id", idInt))
+
+	var f int
+	err = ro.Scan(&f)
+	if err != nil {
+		sendError(w, "ошибка: id отсутствует в базе", err)
+		return
+	}
 
 	// обновление записи  в БД
 	_, err = rt.DB.Exec(`
