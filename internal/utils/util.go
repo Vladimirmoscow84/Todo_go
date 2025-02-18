@@ -26,7 +26,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 	case repeat == "y":
 		nextDate := parseDate.AddDate(1, 0, 0)
 		for nextDate.Before(now) {
-			//return "", errors.New("Несоотвтествие следующей даты относительно текущей")
+
 			nextDate = nextDate.AddDate(1, 0, 0)
 		}
 		return nextDate.Format("20060102"), nil
@@ -38,7 +38,7 @@ func NextDate(now time.Time, date string, repeat string) (string, error) {
 		}
 		nextDate := parseDate.AddDate(0, 0, days)
 		for nextDate.Before(now) {
-			//return "", errors.New("Несоотвтествие следующей даты относительно текущей")
+
 			nextDate = nextDate.AddDate(0, 0, days)
 		}
 		return nextDate.Format("20060102"), nil
