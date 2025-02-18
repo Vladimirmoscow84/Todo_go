@@ -60,8 +60,6 @@ func (rt *Router) Routers() *chi.Mux {
 
 	router.Handle("/*", http.FileServer(http.Dir(filepath.Join(root, "web"))))
 
-	//router.Handle("/*", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web"))) // на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
-	// на маке путь ../web , на  ПК - C:\\KKO11\\Golang\\Todo_go\\web
 	return router
 }
 
@@ -339,7 +337,7 @@ func (rt *Router) ChangeTaskHandler_Put(w http.ResponseWriter, r *http.Request) 
 		sendError(w, "ошибка в конвертированиии поля ID", err)
 		return
 	}
-	fmt.Printf("idInt: %d\n", idInt)
+	fmt.Printf("id: %d\n", idInt)
 	if task.Title == "" {
 		sendError(w, "не указан заголовок задачи", errors.New("не указан заголовок задачи"))
 		return

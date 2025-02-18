@@ -17,11 +17,6 @@ func main() {
 		return
 	}
 
-	// для windows
-	// http.Handle("/", http.FileServer(http.Dir("C:\\KKO11\\Golang\\Todo_go\\web")))
-	// для mac
-	// http.Handle("/", http.FileServer(http.Dir("../web"))) // на маке путь нужно откорректировать ../web
-
 	fmt.Println("Запуск сервера")
 
 	err = http.ListenAndServe(":7540", router.Routers())
@@ -32,5 +27,4 @@ func main() {
 
 	router.DB.Close()
 	time.Sleep(time.Second * 3)
-
 }
