@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// DoneTaskHandler_Post - ручка, которая делает задачу выполненой
 func (rt *Router) DoneTaskHandler_Post(w http.ResponseWriter, r *http.Request) {
 
 	qp := r.URL.Query()

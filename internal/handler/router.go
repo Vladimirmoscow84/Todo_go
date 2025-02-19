@@ -53,6 +53,7 @@ func (rt *Router) Routers() *chi.Mux {
 	router.Get("/api/task", rt.TaskIDhandler_Get)
 	router.Put("/api/task", rt.ChangeTaskHandler_Put)
 	router.Post("/api/task/done", rt.DoneTaskHandler_Post)
+	router.Delete("/api/task", rt.DeleteTaskHandler_Delete)
 
 	router.Handle("/*", http.FileServer(http.Dir(filepath.Join(root, "web"))))
 

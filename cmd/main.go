@@ -4,7 +4,6 @@ import (
 	"Todo_go/internal/handler"
 	"fmt"
 	"net/http"
-	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -26,5 +25,4 @@ func main() {
 	}
 
 	router.DB.Close()
-	time.Sleep(time.Second * 3)
 }
