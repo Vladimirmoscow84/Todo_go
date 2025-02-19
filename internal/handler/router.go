@@ -46,7 +46,8 @@ func NewRouter() (*Router, error) {
 
 func (rt *Router) Routers() *chi.Mux {
 	router := chi.NewRouter()
-	root, _ := os.Getwd()
+	// root, _ := os.Getwd()
+	root, _ := os.Executable()
 	router.Get("/api/nextdate", rt.NextDateHandler_Get)
 	router.Post("/api/task", rt.AddTaskHandler_Post)
 	router.Get("/api/tasks", rt.NextTaskHandler_Get)
@@ -54,8 +55,11 @@ func (rt *Router) Routers() *chi.Mux {
 	router.Put("/api/task", rt.ChangeTaskHandler_Put)
 	router.Post("/api/task/done", rt.DoneTaskHandler_Post)
 	router.Delete("/api/task", rt.DeleteTaskHandler_Delete)
-
-	router.Handle("/*", http.FileServer(http.Dir(filepath.Join(root, "web"))))
+	root2 := filepath.Join(root, "web")
+	fmt.Printf("root: %v\n", root)
+	fmt.Printf("root2: %v\n", root2)
+	// router.Handle("/*", http.FileServer(http.Dir(filepath.Join(root, "Dev/Project/Todo_go/web"))))
+	router.Handle("/*", http.FileServer(http.Dir(filepath.Join(filepath.Dir(root), "web"))))
 
 	return router
 }
