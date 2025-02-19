@@ -1,15 +1,17 @@
-go test -run ^TestApp$ ./tests
+go test -count=1 -run ^TestApp$ ./tests
 
-go test -run ^TestDB$ ./tests
+go test -count=1 -run ^TestDB$ ./tests
 
-go test -run ^TestNextDate$ ./tests
+go test -count=1 -run ^TestNextDate$ ./tests
 
-go test -run ^TestAddTask$ ./tests
+go test -count=1 -run ^TestAddTask$ ./tests
 
-go test -run ^TestTasks$ ./tests
+go test -count=1 -run ^TestTasks$ ./tests
 
-go test -run ^TestTask$ ./tests
+go test -count=1 -run ^TestTask$ ./tests
 
-go test -run ^TestEditTask$ ./tests
+go test -count=1 -run ^TestEditTask$ ./tests
 
-go test -run ^TestDone$ ./tests
+go test -count=1 -run ^TestDone$ ./tests
+
+go test -count=1 ./tests
